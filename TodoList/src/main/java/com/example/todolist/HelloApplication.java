@@ -25,6 +25,7 @@ import java.util.List;
 public class HelloApplication extends Application
 {
     VBox center;
+    VBox left;
     @Override
     public void start(Stage primaryStage)
     {
@@ -60,8 +61,25 @@ public class HelloApplication extends Application
 
         grid.setCenter(center);
 
-        VBox left = new VBox(); //TODO spostare la creazione di left in una funziona da chiamare ogni volta che si aggiunge un tag per aggiornare la combobox dei tag
+        left = new VBox();
 
+        visualizeMenu();
+
+        grid.setLeft(left);
+
+
+        primaryStage.setTitle("TodoList");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    /**
+     * function to visualize left menu
+     */
+    private void visualizeMenu() {
+        for(int i =0; i<left.getChildren().size();i++){
+            left.getChildren().remove(i);
+        }
         Button today = new Button("Visualizza le cosa da fare per oggi");
         today.setOnAction(visualizeTodayTodos());
         left.getChildren().add(today);
@@ -71,12 +89,13 @@ public class HelloApplication extends Application
         left.getChildren().add(choosedate);
 
         ComboBox tags = new ComboBox();
+        tags.getItems().add("Visualizza per tag");
+        tags.getSelectionModel().selectFirst();
         tags.setOnAction(visualizeTodosByTag(tags));
         try {
             BufferedReader bufferreader = new BufferedReader(new FileReader("tags.txt"));
             String line;
             while((line = bufferreader.readLine()) !=null){
-                System.out.println(line);
                 tags.getItems().add(line);
             }
         } catch (FileNotFoundException e) {
@@ -86,13 +105,22 @@ public class HelloApplication extends Application
         }
         left.getChildren().add(tags);
 
-        //TODO aggiungi filtro per molto urgente, urgente, poco urgente
-        grid.setLeft(left);
+        ComboBox urgency = new ComboBox();
+        urgency.getItems().add("Visualizza per livello di urgenza");
+        urgency.getItems().add("Molto urgente");
+        urgency.getItems().add("Urgente");
+        urgency.getItems().add("Poco urgente");
+        urgency.getSelectionModel().selectFirst();
+        urgency.setOnAction(visualizeTodosByUrgency(urgency));
+        left.getChildren().add(urgency);
+    }
 
-
-        primaryStage.setTitle("TodoList");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    private EventHandler<ActionEvent> visualizeTodosByUrgency(ComboBox urgency) {
+        return new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                //TODO implement
+            }
+        };
     }
 
     /**
@@ -146,7 +174,13 @@ public class HelloApplication extends Application
             ex.printStackTrace();
         }
     }
-    private EventHandler<ActionEvent> visualizeTodosByTag(ComboBox tags) {
+
+    /**
+     * visualize all todos with a specific tag
+     * @param tags combobox inside left menu
+     * @return
+     */
+    private EventHandler<ActionEvent> visualizeTodosByTag(ComboBox tags) {  //TODO visualize date and color based on urgency
         return new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 String todotag = tags.getValue().toString();
@@ -159,14 +193,16 @@ public class HelloApplication extends Application
                     int cont=0;
                     while ((line = bufferreader.readLine()) != null) {
                         String[] info = line.split(";");
-                        System.out.println(" ");
-                        if(info[1].contains(todotag)){
-                            HBox todoelement = new HBox();
-                            CheckBox checkBox = new CheckBox();
-                            Label todo = new Label(line.substring(line.lastIndexOf(';')+1));
-                            todoelement.getChildren().addAll(checkBox,todo);
-                            center.getChildren().add(todoelement);
-                            cont++;
+                        String[] infotags = info[1].split(",");
+                        for(int i=0;i<infotags.length;i++){
+                            if(infotags[i].equals(todotag)){
+                                HBox todoelement = new HBox();
+                                CheckBox checkBox = new CheckBox();
+                                Label todo = new Label(line.substring(line.lastIndexOf(';')+1));
+                                todoelement.getChildren().addAll(checkBox,todo);
+                                center.getChildren().add(todoelement);
+                                cont++;
+                            }
                         }
                     }
                     if(cont==0){
@@ -187,7 +223,11 @@ public class HelloApplication extends Application
         };
     }
 
-
+    /**
+     * visualize all the todos for a specific date
+     * @param date datepicker inside left menu
+     * @return
+     */
     private EventHandler<ActionEvent> visualizeTodosByDate(DatePicker date) {   //TODO merge with visualizeToday
         return new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
@@ -272,6 +312,16 @@ public class HelloApplication extends Application
             }
         };
     }
+
+    /**
+     * function called when the user want to add a todo
+     * @param date datepicker from add todo stage
+     * @param urgency combobox from add todo stage
+     * @param tags textfield from add todo stage
+     * @param todo textarea from add todo stage
+     * @param stage stage to add a todo
+     * @return
+     */
     public EventHandler<ActionEvent> confirmAddTodo(DatePicker date, ComboBox urgency, TextField tags, TextArea todo, Stage stage) {
 
         return new EventHandler<ActionEvent>() {
@@ -311,18 +361,11 @@ public class HelloApplication extends Application
                     }
                 }
                 visualizeToday();
+                visualizeMenu();
                 stage.close();
             }
         };
     }
-
-
-
-
-
-
-
-
 
 
 
