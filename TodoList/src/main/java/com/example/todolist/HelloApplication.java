@@ -58,8 +58,22 @@ public class HelloApplication extends Application
         center = new VBox();
 
         visualizeToday();
+        Elements test = new Elements();
+        grid.setCenter(test);
 
-        grid.setCenter(center);
+        try {
+            BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
+            String line;
+            while((line = bufferreader.readLine()) !=null){
+                System.out.println(line);
+                test.createElement(line,false);
+            }
+            bufferreader.close();
+        } catch (Exception ex){
+            System.out.println(ex.toString());
+        }
+
+        //grid.setCenter(center);
 
         left = new VBox();
 
