@@ -20,8 +20,9 @@ import java.util.List;
 
 public class HelloApplication extends Application
 {
-    VBox center;
-    VBox left;
+    Elements center;
+    SideMenu sideMenu;
+    AllElements allElements;
     @Override
     public void start(Stage primaryStage)
     {
@@ -55,31 +56,15 @@ public class HelloApplication extends Application
 
         Scene scene = new Scene(root, 800, 800);
 
-        center = new VBox();
+        allElements = new AllElements();
 
-        visualizeToday();
-        Elements test = new Elements();
-        grid.setCenter(test);
 
-        try {
-            BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-            String line;
-            while((line = bufferreader.readLine()) !=null){
-                System.out.println(line);
-                test.createElement(line,false);
-            }
-            bufferreader.close();
-        } catch (Exception ex){
-            System.out.println(ex.toString());
-        }
 
-        //grid.setCenter(center);
+        center = new Elements();
+        grid.setCenter(center);
 
-        left = new VBox();
-
-        visualizeMenu();
-
-        grid.setLeft(left);
+        sideMenu = new SideMenu(center);
+        grid.setLeft(sideMenu);
 
 
         primaryStage.setTitle("TodoList");
@@ -95,15 +80,15 @@ public class HelloApplication extends Application
         return new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                VBox vbox = new VBox();
-                Scene sceneRemoveTodo = new Scene(vbox, 800,800);
+                //VBox vbox = new VBox();
+                BorderPane grid = new BorderPane();
+                Scene sceneRemoveTodo = new Scene(grid, 800,800);
                 Stage stage = new Stage();
                 stage.setScene(sceneRemoveTodo);
 
-                VBox vboxinside = new VBox();
 
 
-                MenuItem menuItem1 = new MenuItem("Filtra per data");   //create submenu
+                /*MenuItem menuItem1 = new MenuItem("Filtra per data");   //create submenu
                 menuItem1.setOnAction(filterByDate(vboxinside,stage));
                 menuItem1.setStyle("-fx-font-size: 20px");   //-fx-background-color: #fffdd0
 
@@ -125,9 +110,17 @@ public class HelloApplication extends Application
                 menuBar.getMenus().add(mainmenu);
                 
                 vbox.getChildren().add(menuBar);
+
+
                 vbox.getChildren().add(vboxinside);
 
-                visualizeAllTodos(vboxinside,stage);
+                visualizeAllTodos(vboxinside,stage);*/
+
+                Elements removeelement = new Elements();
+
+                removeelement.addElements(allElements.getAllELement());
+                SideMenu removesidemenu = new SideMenu(removeelement);
+
                 
                 stage.show();
             }
@@ -490,7 +483,6 @@ public class HelloApplication extends Application
                     inputFile.delete();
                     tempFile.renameTo(inputFile);
 
-                    visualizeToday();
                     stage.close();
 
                 } catch (FileNotFoundException ex) {
@@ -503,298 +495,6 @@ public class HelloApplication extends Application
         };
     }
 
-
-    /**
-     * function to visualize left menu
-     */
-    private void visualizeMenu() {
-        left.getChildren().clear();
-        Button today = new Button("Visualizza le cosa da fare per oggi");
-        today.setOnAction(visualizeTodayTodos());
-        left.getChildren().add(today);
-
-        DatePicker choosedate = new DatePicker();
-        choosedate.setOnAction(visualizeTodosByDate(choosedate));   //verifica se funziona
-        left.getChildren().add(choosedate);
-
-        ComboBox tags = new ComboBox();
-        tags.getItems().add("Visualizza per tag");
-        tags.getSelectionModel().selectFirst();
-        tags.setOnAction(visualizeTodosByTag(tags));
-        try {
-            BufferedReader bufferreader = new BufferedReader(new FileReader("tags.txt"));
-            String line;
-            while((line = bufferreader.readLine()) !=null){
-                tags.getItems().add(line);
-            }
-            bufferreader.close();
-        } catch (FileNotFoundException e) {
-            System.out.println(e.toString());
-        } catch (IOException e) {
-            System.out.println(e.toString());
-        }
-        left.getChildren().add(tags);
-
-        ComboBox urgency = new ComboBox();
-        urgency.getItems().add("Visualizza per livello di urgenza");
-        urgency.getItems().add("Molto urgente");
-        urgency.getItems().add("Urgente");
-        urgency.getItems().add("Poco urgente");
-        urgency.getSelectionModel().selectFirst();
-        urgency.setOnAction(visualizeTodosByUrgency(urgency));
-
-        left.getChildren().add(urgency);
-    }
-
-    /**
-     * visualize all the todos filtered by urgency level
-     * @param urgency level of urgency
-     * @return
-     */
-    private EventHandler<ActionEvent> visualizeTodosByUrgency(ComboBox urgency) {
-        return new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                String todourgency = urgency.getValue().toString();
-                center.getChildren().clear();
-                Label visualizeUrgency = new Label("Visualizza todo per urgenza "+todourgency);
-                center.getChildren().add(visualizeUrgency);
-
-
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String urgency = info[2];
-                        if(urgency.equals(todourgency)){
-                            HBox todoelement = new HBox();
-                            CheckBox checkBox = new CheckBox();
-                            Label todo = new Label(info[3]);
-
-                            if(urgency.equals("Molto urgente")){
-                                todo.setStyle("-fx-text-fill:red");
-
-                            }else if(urgency.equals("Urgente")){
-                                todo.setStyle("-fx-text-fill:orange");
-
-                            }else if(urgency.equals("Poco urgente")){
-                                todo.setStyle("-fx-text-fill:yellow");
-
-                            }
-
-                            todoelement.getChildren().addAll(checkBox,todo);
-                            center.getChildren().add(todoelement);
-                            cont++;
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        center.getChildren().add(nothingtodo);
-                    }
-                bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-
-            }
-        };
-    }
-
-    /**
-     * visualize today's todo when the button is pressed
-     * @return
-     */
-    private EventHandler<ActionEvent> visualizeTodayTodos() {
-        return new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                visualizeToday();
-            }
-        };
-    }
-
-    /**
-     * visualize today's todo on page load
-     */
-    public void visualizeToday(){
-        center.getChildren().clear();
-        SimpleDateFormat dt1 = new SimpleDateFormat("yyyy-MM-dd");
-        String todaysdate = dt1.format(new Date());
-        try {
-            BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-            String line;
-            int cont=0;
-            Label today = new Label("Todo list per "+todaysdate);
-            center.getChildren().add(today);
-            while ((line = bufferreader.readLine()) != null) {
-                String[] info = line.split(";");
-                String urgency = info[2];
-                if(info[0].equals(todaysdate)){
-                    HBox todoelement = new HBox();
-                    CheckBox checkBox = new CheckBox();
-                    Label todo = new Label(line.substring(line.lastIndexOf(';')+1));
-
-                    if(urgency.equals("Molto urgente")){
-                        todo.setStyle("-fx-text-fill:red");
-
-                    }else if(urgency.equals("Urgente")){
-                        todo.setStyle("-fx-text-fill:orange");
-
-                    }else if(urgency.equals("Poco urgente")){
-                        todo.setStyle("-fx-text-fill:yellow");
-
-                    }
-
-
-                    todoelement.getChildren().addAll(checkBox,todo);
-                    center.getChildren().add(todoelement);
-                    cont++;
-                }
-            }
-            if(cont==0){
-                Label nothing = new Label("Nessun elemento per questa giornata!");
-                Button add = new Button("Aggiunti un elemento");
-                add.setOnAction(addTodo());
-                HBox nothingtodo = new HBox();
-                nothingtodo.getChildren().addAll(nothing,add);
-                center.getChildren().add(nothingtodo);
-            }
-        bufferreader.close();
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    /**
-     * visualize all todos with a specific tag
-     * @param tags combobox inside left menu
-     * @return
-     */
-    private EventHandler<ActionEvent> visualizeTodosByTag(ComboBox tags) {
-        return new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                String todotag = tags.getValue().toString();
-                center.getChildren().clear();
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    Label visualizetag = new Label("Todo per il tag "+todotag);
-                    center.getChildren().add(visualizetag);
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String[] infotags = info[1].split(",");
-                        for(int i=0;i<infotags.length;i++){
-                            if(infotags[i].equals(todotag)){
-                                HBox todoelement = new HBox();
-                                CheckBox checkBox = new CheckBox();
-
-                                String urgency = info[2];
-
-
-                                Label todo = new Label(info[3]);
-                                Label date = new Label(info[0]);
-
-                                if(urgency.equals("Molto urgente")){
-                                    todo.setStyle("-fx-text-fill:red");
-                                    date.setStyle("-fx-text-fill:red");
-                                }else if(urgency.equals("Urgente")){
-                                    todo.setStyle("-fx-text-fill:orange");
-                                    date.setStyle("-fx-text-fill:orange");
-                                }else if(urgency.equals("Poco urgente")){
-                                    todo.setStyle("-fx-text-fill:yellow");
-                                    date.setStyle("-fx-text-fill:yellow");
-                                }
-                                todoelement.getChildren().addAll(checkBox,todo,date);
-                                center.getChildren().add(todoelement);
-                                cont++;
-                            }
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        center.getChildren().add(nothingtodo);
-                    }
-                bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-    }
-
-    /**
-     * visualize all the todos for a specific date
-     * @param date datepicker inside left menu
-     * @return
-     */
-    private EventHandler<ActionEvent> visualizeTodosByDate(DatePicker date) {   //TODO merge with visualizeToday
-        return new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                center.getChildren().clear();
-                String tododate = date.getValue().toString();
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    Label today = new Label("Todo list per "+tododate);
-                    center.getChildren().add(today);
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String urgency = info[2];
-                        if(info[0].equals(tododate)){
-                            HBox todoelement = new HBox();
-                            CheckBox checkBox = new CheckBox();
-                            Label todo = new Label(line.substring(line.lastIndexOf(';')+1));
-
-                            if(urgency.equals("Molto urgente")){
-                                todo.setStyle("-fx-text-fill:red");
-
-                            }else if(urgency.equals("Urgente")){
-                                todo.setStyle("-fx-text-fill:orange");
-
-                            }else if(urgency.equals("Poco urgente")){
-                                todo.setStyle("-fx-text-fill:yellow");
-
-                            }
-
-
-                            todoelement.getChildren().addAll(checkBox,todo);
-                            center.getChildren().add(todoelement);
-                            cont++;
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        center.getChildren().add(nothingtodo);
-                    }
-                bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-    }
 
     /**
      * create event handler to add a new item to a todolist
@@ -855,22 +555,24 @@ public class HelloApplication extends Application
         return new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                //System.out.println(""+date.getValue().toString()+" "+tags.getText()+" "+todo.getText());
                 if(date.getValue() == null || todo.getText() == null){
                     error.setText("Errore nell'inserimento della data o del testo"); //add window error instead
                 }else{
                     //save element
                     try {
                         FileWriter myWriter = new FileWriter("todos.txt",true);
-                        myWriter.write("" + date.getValue().toString() + ";" + tags.getText() + ";"+ urgency.getValue() + ";" + todo.getText() + "\r\n");
+                        String line ="" + date.getValue().toString() + ";" + tags.getText() + ";"+ urgency.getValue() + ";" + todo.getText() + "\r\n";
+                        myWriter.write(line);
                         myWriter.close();
+                        center.createElement(line,false);
+                        allElements.addElement(new Element(line,false));
                         if(tags.getText()!=""){ //update the list of all tags if there are someone new
                             String[] mytags = tags.getText().split(";");
                             //List<String> tagstoadd = new ArrayList<>();
 
                             myWriter = new FileWriter("tags.txt",true);
                             BufferedReader bufferreader = new BufferedReader(new FileReader("tags.txt"));
-                            String line;
+                            line="";
 
                             List<String> alltags = new ArrayList<>();
                             while ((line = bufferreader.readLine()) != null) {
@@ -888,8 +590,10 @@ public class HelloApplication extends Application
                         System.out.println(ex.toString());
                     }
                 }
-                visualizeToday();
-                visualizeMenu();
+                sideMenu.refresh();
+                SimpleDateFormat dt1 = new SimpleDateFormat("yyyy-MM-dd");
+                String todaysdate = dt1.format(new Date());
+                sideMenu.confirmVisualizeByDate(todaysdate);
                 stage.close();
             }
         };

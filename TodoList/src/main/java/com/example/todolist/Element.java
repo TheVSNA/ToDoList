@@ -49,10 +49,10 @@ public class Element extends HBox {
         Collections.addAll(tags,info[1].split(","));
         this.getChildren().addAll(checkBox,todotext,date);
 
+        delete = new Button("Rimuovi");
+        delete.setOnAction(deleteElement());
+        delete.setPadding(new Insets(10,10,0,0));
         if(show_delete_button){
-            delete = new Button("Rimuovi");
-            delete.setOnAction(deleteElement());
-            delete.setPadding(new Insets(10,10,0,0));
             this.getChildren().add(delete);
         }
 
@@ -110,6 +110,13 @@ public class Element extends HBox {
      */
     public boolean containTag(String tag){
         return tags.contains(tag);
+    }
+
+    public void visualizeRemoveButton(boolean visualize){
+        this.getChildren().remove(delete);
+        if(visualize)
+            this.getChildren().add(delete);
+
     }
 
     @Override
