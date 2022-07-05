@@ -25,7 +25,8 @@ public class SideMenu extends VBox {
     public SideMenu(Elements center){
 
         this.center = center;
-        this.setAlignment(Pos.CENTER_LEFT);
+        //this.setAlignment(Pos.CENTER_LEFT);
+        this.setAlignment(Pos.TOP_LEFT);
         this.refresh();
 
     }
@@ -93,7 +94,7 @@ public class SideMenu extends VBox {
                     while ((line = bufferreader.readLine()) != null) {
                         String[] info = line.split(";");
                         if(info[2].equals(selectedurgency)){
-                            Element element = new Element(line,false);
+                            Element element = new Element(line,center.getShowDeleteButton(),center);
                             center.addElement(element);
                         }
                     }
@@ -121,7 +122,7 @@ public class SideMenu extends VBox {
                         String[] infotags = info[1].split(",");
                         for(int i=0;i<infotags.length;i++) {
                             if (infotags[i].equals(tag)) {
-                                Element element = new Element(line, false);
+                                Element element = new Element(line, center.getShowDeleteButton(),center);
                                 center.addElement(element);
                             }
                         }
@@ -163,7 +164,7 @@ public class SideMenu extends VBox {
             while ((line = bufferreader.readLine()) != null) {
                 String[] info = line.split(";");
                 if(info[0].equals(date)){
-                    Element element = new Element(line,false);
+                    Element element = new Element(line,center.getShowDeleteButton(),center);
                     center.addElement(element);
                 }
             }

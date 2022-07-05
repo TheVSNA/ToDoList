@@ -3,13 +3,13 @@ package com.example.todolist;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.io.*;
@@ -22,7 +22,6 @@ public class HelloApplication extends Application
 {
     Elements center;
     SideMenu sideMenu;
-    AllElements allElements;
     @Override
     public void start(Stage primaryStage)
     {
@@ -51,16 +50,15 @@ public class HelloApplication extends Application
         //menuBar.setStyle("-fx-background-color: #fffdd0");
 
         VBox root = new VBox(menuBar);
+        root.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
         BorderPane grid = new BorderPane();
         root.getChildren().add(grid);
 
         Scene scene = new Scene(root, 800, 800);
 
-        allElements = new AllElements();
 
 
-
-        center = new Elements();
+        center = new Elements(false);
         grid.setCenter(center);
 
         sideMenu = new SideMenu(center);
@@ -82,415 +80,19 @@ public class HelloApplication extends Application
             public void handle(ActionEvent e) {
                 //VBox vbox = new VBox();
                 BorderPane grid = new BorderPane();
+                grid.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
                 Scene sceneRemoveTodo = new Scene(grid, 800,800);
                 Stage stage = new Stage();
                 stage.setScene(sceneRemoveTodo);
 
-
-
-                /*MenuItem menuItem1 = new MenuItem("Filtra per data");   //create submenu
-                menuItem1.setOnAction(filterByDate(vboxinside,stage));
-                menuItem1.setStyle("-fx-font-size: 20px");   //-fx-background-color: #fffdd0
-
-                MenuItem menuItem2 = new MenuItem("Filtra per urgenza");
-                menuItem2.setOnAction(filterByUrgency(vboxinside,stage));
-                menuItem2.setStyle("-fx-font-size: 20px");
-
-                MenuItem menuItem3 = new MenuItem("Filtra per tag");
-                menuItem3.setOnAction(filterByTag(vboxinside,stage));
-                menuItem3.setStyle("-fx-font-size: 20px");
-                
-                Menu mainmenu = new Menu("Filtra"); //create menu
-                mainmenu.setStyle("-fx-font-size: 20px");
-                mainmenu.getItems().addAll(menuItem1,menuItem2,menuItem3);
-                //mainmenu.setStyle("-fx-background-color: #fffdd0");
-
-                MenuBar menuBar = new MenuBar();    //create menu bar
-                menuBar.setMinHeight(40);
-                menuBar.getMenus().add(mainmenu);
-                
-                vbox.getChildren().add(menuBar);
-
-
-                vbox.getChildren().add(vboxinside);
-
-                visualizeAllTodos(vboxinside,stage);*/
-
-                Elements removeelement = new Elements();
-
-                removeelement.addElements(allElements.getAllELement());
+                Elements removeelement = new Elements(true);
+                removeelement.getAllElements();
                 SideMenu removesidemenu = new SideMenu(removeelement);
 
+                grid.setLeft(removesidemenu);
+                grid.setCenter(removeelement);
                 
                 stage.show();
-            }
-        };
-    }
-
-    /**
-     * show a window to select a tag to filter all the todos
-     * @param vbox VBox in which insert all the elements
-     * @param stage Stage to close once the element is deleted
-     * @return
-     */
-    private EventHandler<ActionEvent> filterByTag(VBox vbox, Stage stage) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                VBox tagvbox = new VBox();
-                Scene sceneRemoveTodo = new Scene(tagvbox, 800,800);
-                Stage tagstage = new Stage();
-                tagstage.setScene(sceneRemoveTodo);
-
-                HBox hBox = new HBox();
-                Label l = new Label("Scegli il tag");
-                ComboBox combo = new ComboBox();
-                combo.setOnAction(confirmFilterByTag(vbox,stage,tagstage,combo));
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("tags.txt"));
-                    String line;
-                    while((line = bufferreader.readLine()) !=null){
-                        combo.getItems().add(line);
-                    }
-                    bufferreader.close();
-                } catch (Exception ex){
-                    System.out.println(e.toString());
-                }
-                hBox.getChildren().addAll(l,combo);
-                tagvbox.getChildren().add(hBox);
-                tagstage.show();
-            }
-        };
-    }
-
-    /**
-     * function called when the user select a tag in the filterByTag function
-     * @param vbox
-     * @param stage
-     * @param tagstage
-     * @param combo
-     * @return
-     */
-    private EventHandler<ActionEvent> confirmFilterByTag(VBox vbox, Stage stage, Stage tagstage, ComboBox combo) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                tagstage.close();   //close the stage to select the tag
-                vbox.getChildren().clear(); //remove all elements from the VBox so that new filtered items can be inserted
-                String todotag = combo.getValue().toString();
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    Label visualizetag = new Label("Todo per il tag "+todotag);
-                    vbox.getChildren().add(visualizetag);
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String[] infotags = info[1].split(",");
-                        for(int i=0;i<infotags.length;i++){
-                            if(infotags[i].equals(todotag)){
-                                HBox todoelement = new HBox();
-                                CheckBox checkBox = new CheckBox();
-
-                                String urgency = info[2];
-
-                                Button delete = new Button("Elimina");
-                                delete.setOnAction(confirmRemoveElement(line,stage));
-
-                                Label todo = new Label(info[3]);
-                                Label date = new Label(info[0]);
-
-                                if(urgency.equals("Molto urgente")){
-                                    todo.setStyle("-fx-text-fill:red");
-                                    date.setStyle("-fx-text-fill:red");
-                                }else if(urgency.equals("Urgente")){
-                                    todo.setStyle("-fx-text-fill:orange");
-                                    date.setStyle("-fx-text-fill:orange");
-                                }else if(urgency.equals("Poco urgente")){
-                                    todo.setStyle("-fx-text-fill:yellow");
-                                    date.setStyle("-fx-text-fill:yellow");
-                                }
-                                todoelement.getChildren().addAll(checkBox,todo,date,delete);
-                                vbox.getChildren().add(todoelement);
-                                cont++;
-                            }
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        vbox.getChildren().add(nothingtodo);
-                    }
-                    bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-    }
-
-    /**
-     * show a window to select a urgency level to filter all the todos
-     * @param vbox VBox in which insert all the elements
-     * @param stage Stage to close once the element is deleted
-     * @return
-     */
-    private EventHandler<ActionEvent> filterByUrgency(VBox vbox, Stage stage) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                VBox urgencybox = new VBox();
-                Scene sceneRemoveTodo = new Scene(urgencybox, 800,800);
-                Stage urgencystage = new Stage();
-                urgencystage.setScene(sceneRemoveTodo);
-
-                HBox hBox = new HBox();
-                Label l = new Label("Scegli il tag");
-                ComboBox combo = new ComboBox();
-                combo.setOnAction(confirmFilterByUrgency(vbox,stage,urgencystage,combo));
-                combo.getItems().add("Molto urgente");
-                combo.getItems().add("Urgente");
-                combo.getItems().add("Poco urgente");
-
-                hBox.getChildren().addAll(l,combo);
-                urgencybox.getChildren().add(hBox);
-                urgencystage.show();
-            }
-        };
-    }
-
-    /**
-     * function called when the user select a urgency level in the filterByUrgency function
-     * @param vbox
-     * @param stage
-     * @param urgencystage
-     * @param combo
-     * @return
-     */
-    private EventHandler<ActionEvent> confirmFilterByUrgency(VBox vbox, Stage stage, Stage urgencystage, ComboBox combo) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                urgencystage.close();   //close the stage to select the tag
-                vbox.getChildren().clear(); //remove all elements from the VBox so that new filtered items can be inserted
-                String todourgency = combo.getValue().toString();
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    Label visualizetag = new Label("Todo per l'urgenza "+todourgency);
-                    vbox.getChildren().add(visualizetag);
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String urgency = info[2];
-                        if(urgency.equals(todourgency)){
-                            HBox todoelement = new HBox();
-                            CheckBox checkBox = new CheckBox();
-
-                            Button delete = new Button("Elimina");
-                            delete.setOnAction(confirmRemoveElement(line,stage));
-
-                            Label todo = new Label(info[3]);
-                            Label date = new Label(info[0]);
-
-                            if(urgency.equals("Molto urgente")){
-                                todo.setStyle("-fx-text-fill:red");
-                                date.setStyle("-fx-text-fill:red");
-                            }else if(urgency.equals("Urgente")){
-                                todo.setStyle("-fx-text-fill:orange");
-                                date.setStyle("-fx-text-fill:orange");
-                            }else if(urgency.equals("Poco urgente")){
-                                todo.setStyle("-fx-text-fill:yellow");
-                                date.setStyle("-fx-text-fill:yellow");
-                            }
-                            todoelement.getChildren().addAll(checkBox,todo,date,delete);
-                            vbox.getChildren().add(todoelement);
-                            cont++;
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        vbox.getChildren().add(nothingtodo);
-                    }
-                    bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-    }
-
-    /**
-     * show a window to select a date to filter all the todos
-     * @param vbox VBox in which insert all the elements
-     * @param stage Stage to close once the element is deleted
-     * @return
-     */
-    private EventHandler<ActionEvent> filterByDate(VBox vbox, Stage stage) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                VBox datebox = new VBox();
-                Scene sceneRemoveTodo = new Scene(datebox, 800,800);
-                Stage datestage = new Stage();
-                datestage.setScene(sceneRemoveTodo);
-
-                HBox hBox = new HBox();
-                Label l = new Label("Scegli la data");
-                DatePicker datePicker = new DatePicker();
-                datePicker.setOnAction(confirmFilterByDate(vbox,stage,datestage,datePicker));
-
-                hBox.getChildren().addAll(l,datePicker);
-                datebox.getChildren().add(hBox);
-                datestage.show();
-            }
-        };
-    }
-
-    /**
-     * function called when the user select a date in the filterByDate function
-     * @param vbox
-     * @param stage
-     * @param datestage
-     * @param datePicker
-     * @return
-     */
-    private EventHandler<ActionEvent> confirmFilterByDate(VBox vbox, Stage stage, Stage datestage, DatePicker datePicker) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                datestage.close();   //close the stage to select the tag
-                vbox.getChildren().clear(); //remove all elements from the VBox so that new filtered items can be inserted
-                String todourgency = datePicker.getValue().toString();
-                try {
-                    BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-                    String line;
-                    int cont=0;
-                    Label visualizetag = new Label("Todo per l'urgenza "+todourgency);
-                    vbox.getChildren().add(visualizetag);
-                    while ((line = bufferreader.readLine()) != null) {
-                        String[] info = line.split(";");
-                        String urgency = info[2];
-                        if(info[0].equals(todourgency)){
-                            HBox todoelement = new HBox();
-                            CheckBox checkBox = new CheckBox();
-
-                            Button delete = new Button("Elimina");
-                            delete.setOnAction(confirmRemoveElement(line,stage));
-
-                            Label todo = new Label(info[3]);
-                            Label date = new Label(info[0]);
-
-                            if(urgency.equals("Molto urgente")){
-                                todo.setStyle("-fx-text-fill:red");
-                                date.setStyle("-fx-text-fill:red");
-                            }else if(urgency.equals("Urgente")){
-                                todo.setStyle("-fx-text-fill:orange");
-                                date.setStyle("-fx-text-fill:orange");
-                            }else if(urgency.equals("Poco urgente")){
-                                todo.setStyle("-fx-text-fill:yellow");
-                                date.setStyle("-fx-text-fill:yellow");
-                            }
-                            todoelement.getChildren().addAll(checkBox,todo,date,delete);
-                            vbox.getChildren().add(todoelement);
-                            cont++;
-                        }
-                    }
-                    if(cont==0){
-                        Label nothing = new Label("Nessun elemento per questa giornata!");
-                        Button add = new Button("Aggiunti un elemento");
-                        add.setOnAction(addTodo());
-                        HBox nothingtodo = new HBox();
-                        nothingtodo.getChildren().addAll(nothing,add);
-                        vbox.getChildren().add(nothingtodo);
-                    }
-                    bufferreader.close();
-                } catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        };
-    }
-
-    /**
-     * visualize all the todos with a button to remove a specific element
-     * @param vbox VBox in which the elements are added
-     * @param stage Stage to close once the element is deleted
-     */
-    private void visualizeAllTodos(VBox vbox,Stage stage){
-        vbox.getChildren().clear();
-        try {
-            BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
-            String line;
-            while ((line = bufferreader.readLine()) != null) {
-                String[] info = line.split(";");
-                HBox item = new HBox();
-                item.getChildren().addAll(new Label(info[3]),new Label(info[0]));
-                Button remove = new Button("Rimuovi");
-                remove.setOnAction(confirmRemoveElement(line,stage));
-                item.getChildren().add(remove);
-                vbox.getChildren().add(item);
-            }
-            bufferreader.close();
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    /**
-     * function called when the user press a remove button inside the visualizeAllTodos function
-     * @param lineToRemove todo to remove
-     * @param stage Stage to close
-     * @return
-     */
-    private EventHandler<ActionEvent> confirmRemoveElement(String lineToRemove,Stage stage) {
-        return new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                BufferedReader reader = null;
-                BufferedWriter writer = null;
-                try {
-                    File inputFile = new File("todos.txt");
-                    File tempFile = new File("temptodos.txt");
-                    reader = new BufferedReader(new FileReader(inputFile));
-                    writer = new BufferedWriter(new FileWriter(tempFile));
-
-                    String currentLine;
-
-                    while((currentLine = reader.readLine()) != null) {
-                        // trim newline when comparing with lineToRemove
-                        String trimmedLine = currentLine.trim();
-                        if(!trimmedLine.equals(lineToRemove))
-                            writer.write(currentLine + System.getProperty("line.separator"));
-                    }
-                    writer.close();
-                    reader.close();
-                    inputFile.delete();
-                    tempFile.renameTo(inputFile);
-
-                    stage.close();
-
-                } catch (FileNotFoundException ex) {
-                    throw new RuntimeException(ex);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-
             }
         };
     }
@@ -505,6 +107,7 @@ public class HelloApplication extends Application
         return new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 VBox vbox = new VBox();
+                vbox.setBackground(new Background(new BackgroundFill(Color.GRAY, CornerRadii.EMPTY, Insets.EMPTY)));
                 Scene sceneAddTodo = new Scene(vbox, 800,800);
                 Stage stage = new Stage();
                 stage.setScene(sceneAddTodo);
@@ -564,8 +167,7 @@ public class HelloApplication extends Application
                         String line ="" + date.getValue().toString() + ";" + tags.getText() + ";"+ urgency.getValue() + ";" + todo.getText() + "\r\n";
                         myWriter.write(line);
                         myWriter.close();
-                        center.createElement(line,false);
-                        allElements.addElement(new Element(line,false));
+                        center.createElement(line);
                         if(tags.getText()!=""){ //update the list of all tags if there are someone new
                             String[] mytags = tags.getText().split(";");
                             //List<String> tagstoadd = new ArrayList<>();
@@ -598,10 +200,6 @@ public class HelloApplication extends Application
             }
         };
     }
-
-
-
-
 
     /**
      * @param args the command line arguments

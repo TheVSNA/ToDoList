@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -24,7 +25,11 @@ public class Element extends HBox {
     private String info[];
     private ArrayList<String> tags;
 
-    public Element(String line, boolean show_delete_button){
+    private Elements elements;
+
+    public Element(String line, boolean show_delete_button, Elements elements){
+        this.elements=elements;
+
         info=line.split(";");
         urgency = info[2];  // TODO: 03/07/2022 change urgency system to ints
         checkBox = new CheckBox();
@@ -155,7 +160,7 @@ public class Element extends HBox {
                     while((currentLine = reader.readLine()) != null) {
                         // trim newline when comparing with lineToRemove
                         String trimmedLine = currentLine.trim();
-                        String lineToRemove = getDate()+";"+getTags().toString()+";"+getUrgency()+";"+getTodoText();
+                        String lineToRemove = getDate()+";"+ String.join(",",getTags())+";"+getUrgency()+";"+getTodoText();
                         if(!trimmedLine.equals(lineToRemove))
                             writer.write(currentLine + System.getProperty("line.separator"));
                     }
@@ -164,6 +169,7 @@ public class Element extends HBox {
                     inputFile.delete();
                     tempFile.renameTo(inputFile);
 
+                    deleteFromList();
                 } catch (FileNotFoundException ex) {
                     System.out.println(ex);
                 } catch (IOException ex) {
@@ -171,5 +177,8 @@ public class Element extends HBox {
                 }
             }
         };
+    }
+    private void deleteFromList(){
+        elements.deleteElement(this);
     }
 }

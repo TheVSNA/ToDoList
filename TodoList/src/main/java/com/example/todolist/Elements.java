@@ -3,6 +3,8 @@ package com.example.todolist;
 import javafx.geometry.Pos;
 import javafx.scene.layout.VBox;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 
 /**
@@ -10,10 +12,19 @@ import java.util.ArrayList;
  */
 public class Elements extends VBox {
     private ArrayList<Element> elements;
+    private boolean show_delete_button;
 
-    public Elements(){
+    public Elements(boolean show_delete_button){
         elements = new ArrayList<>();
-        this.setAlignment(Pos.CENTER);
+        this.setAlignment(Pos.TOP_CENTER);
+        this.show_delete_button = show_delete_button;
+    }
+
+    public void setShowDeleteButton(boolean b){
+        show_delete_button=b;
+    }
+    public boolean getShowDeleteButton(){
+        return show_delete_button;
     }
 
     public void refresh(){
@@ -33,10 +44,9 @@ public class Elements extends VBox {
     /**
      * create a new element from a string
      * @param line String taken from a file that represent a element
-     * @param show_delete_button boolean set to true if you want to add the remove button
      */
-    public void createElement(String line, boolean show_delete_button){
-        elements.add(new Element(line,show_delete_button));
+    public void createElement(String line){
+        elements.add(new Element(line,show_delete_button,this));
         refresh();
     }
 
@@ -74,5 +84,18 @@ public class Elements extends VBox {
         refresh();
     }
 
+    public void getAllElements(){
+        try {
+            BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
+            String line;
+            while((line = bufferreader.readLine()) !=null){
+                elements.add(new Element(line,show_delete_button,this));
+            }
+            bufferreader.close();
+        } catch (Exception ex){
+            System.out.println(ex.toString());
+        }
+        refresh();
+    }
 
 }
