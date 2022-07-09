@@ -1,6 +1,7 @@
 package com.example.todolist;
 
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 import java.io.BufferedReader;
@@ -98,4 +99,9 @@ public class Elements extends VBox {
         refresh();
     }
 
+    public void showError(String s) {
+        Label l = new Label(s);
+        this.getChildren().clear();
+        this.getChildren().add(l);
+    }
 }

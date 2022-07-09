@@ -33,6 +33,8 @@ public class Element extends HBox {
         info=line.split(";");
         urgency = info[2];  // TODO: 03/07/2022 change urgency system to ints
         checkBox = new CheckBox();
+        checkBox.setSelected(Boolean.parseBoolean(info[4]));
+        checkBox.setOnAction(saveChecked());
         checkBox.setPadding(new Insets(10, 10, 0, 0));    //top right bottom left
 
         todotext=new Label(info[3]);
@@ -64,6 +66,53 @@ public class Element extends HBox {
         this.setAlignment(Pos.CENTER);
     }
 
+    private EventHandler<ActionEvent> saveChecked() {
+        return new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                BufferedReader reader = null;
+                BufferedWriter writer = null;
+                try {
+                    File inputFile = new File("todos.txt");
+                    File tempFile = new File("temptodos.txt");
+                    reader = new BufferedReader(new FileReader(inputFile));
+                    writer = new BufferedWriter(new FileWriter(tempFile));
+
+                    String currentLine;
+                    String newLine;
+                    while((currentLine = reader.readLine()) != null) {
+                        // trim newline when comparing with lineToRemove
+                        String trimmedLine = currentLine.trim();
+                        String lineToRemove = getDate()+";"+ String.join(",",getTags())+";"+getUrgency()+";"+getTodoText()+";"+!getChecked();
+                        if(!trimmedLine.equals(lineToRemove))
+                            writer.write(currentLine + System.getProperty("line.separator"));
+                        else{
+                            newLine = getDate()+";"+ String.join(",",getTags())+";"+getUrgency()+";"+getTodoText()+";"+getChecked();
+                            writer.write(newLine + System.getProperty("line.separator"));
+                        }
+                    }
+                    writer.close();
+                    reader.close();
+                    inputFile.delete();
+                    tempFile.renameTo(inputFile);
+
+                    deleteFromList();
+                } catch (FileNotFoundException ex) {
+                    System.out.println(ex);
+                } catch (IOException ex) {
+                    System.out.println(ex);
+                }
+                refreshElement();
+            }
+        };
+    }
+
+    public void refreshElement(){
+        elements.deleteElement(this);
+        elements.addElement(this);
+        elements.refresh();
+    }
+
     /**
      * getters and setters
      */
@@ -90,6 +139,10 @@ public class Element extends HBox {
 
     public ArrayList<String> getTags(){
         return tags;
+    }
+
+    public boolean getChecked(){
+        return checkBox.isSelected();
     }
 
     /**
@@ -126,7 +179,7 @@ public class Element extends HBox {
 
     @Override
     public String toString(){
-        return "Text: "+todotext+" Date: "+date + " Urgency: " + urgency + " Tags: "+tags.toString();
+        return "Text: "+todotext+" Date: "+date + " Urgency: " + urgency + " Tags: "+tags.toString()+" Checked: "+getChecked();
     }
 
     @Override
@@ -160,7 +213,7 @@ public class Element extends HBox {
                     while((currentLine = reader.readLine()) != null) {
                         // trim newline when comparing with lineToRemove
                         String trimmedLine = currentLine.trim();
-                        String lineToRemove = getDate()+";"+ String.join(",",getTags())+";"+getUrgency()+";"+getTodoText();
+                        String lineToRemove = getDate()+";"+ String.join(",",getTags())+";"+getUrgency()+";"+getTodoText()+";"+getChecked();
                         if(!trimmedLine.equals(lineToRemove))
                             writer.write(currentLine + System.getProperty("line.separator"));
                     }

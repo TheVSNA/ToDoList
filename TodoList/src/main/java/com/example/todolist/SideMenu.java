@@ -22,13 +22,21 @@ public class SideMenu extends VBox {
     private ComboBox tags, urgency;
 
     Elements center;
-    public SideMenu(Elements center){
+    public SideMenu(Elements center, boolean initialize_today){
 
         this.center = center;
         //this.setAlignment(Pos.CENTER_LEFT);
         this.setAlignment(Pos.TOP_LEFT);
         this.refresh();
 
+        if(initialize_today)
+            initializeCenter();
+    }
+
+    private void initializeCenter() {
+        SimpleDateFormat dt1 = new SimpleDateFormat("yyyy-MM-dd");
+        String todaysdate = dt1.format(new Date());
+        confirmVisualizeByDate(todaysdate);
     }
 
     public void refresh(){
@@ -91,12 +99,17 @@ public class SideMenu extends VBox {
                 try {
                     BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
                     String line;
+                    int cont =0;
                     while ((line = bufferreader.readLine()) != null) {
                         String[] info = line.split(";");
                         if(info[2].equals(selectedurgency)){
                             Element element = new Element(line,center.getShowDeleteButton(),center);
                             center.addElement(element);
+                            cont++;
                         }
+                    }
+                    if (cont == 0) {
+                        center.showError("Nessu elemento da visualizzare per questo tipo di urgenza");
                     }
                     bufferreader.close();
                 } catch (FileNotFoundException ex) {
@@ -117,6 +130,7 @@ public class SideMenu extends VBox {
                 try {
                     BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
                     String line;
+                    int cont = 0;
                     while ((line = bufferreader.readLine()) != null) {
                         String[] info = line.split(";");
                         String[] infotags = info[1].split(",");
@@ -124,8 +138,12 @@ public class SideMenu extends VBox {
                             if (infotags[i].equals(tag)) {
                                 Element element = new Element(line, center.getShowDeleteButton(),center);
                                 center.addElement(element);
+                                cont++;
                             }
                         }
+                    }
+                    if (cont == 0) {
+                        center.showError("Nessu elemento da visualizzare per questo tag");
                     }
                     bufferreader.close();
                 } catch (FileNotFoundException ex) {
@@ -150,9 +168,7 @@ public class SideMenu extends VBox {
         return new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-                SimpleDateFormat dt1 = new SimpleDateFormat("yyyy-MM-dd");
-                String todaysdate = dt1.format(new Date());
-                confirmVisualizeByDate(todaysdate);
+                initializeCenter();
             }
         };
     }
@@ -161,12 +177,17 @@ public class SideMenu extends VBox {
         try {
             BufferedReader bufferreader = new BufferedReader(new FileReader("todos.txt"));
             String line;
+            int cont = 0;
             while ((line = bufferreader.readLine()) != null) {
                 String[] info = line.split(";");
                 if(info[0].equals(date)){
                     Element element = new Element(line,center.getShowDeleteButton(),center);
                     center.addElement(element);
+                    cont++;
                 }
+            }
+            if (cont == 0) {
+                center.showError("Nessu elemento da visualizzare per questa data");
             }
             bufferreader.close();
         } catch (FileNotFoundException ex) {

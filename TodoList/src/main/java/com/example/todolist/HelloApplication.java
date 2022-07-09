@@ -61,7 +61,7 @@ public class HelloApplication extends Application
         center = new Elements(false);
         grid.setCenter(center);
 
-        sideMenu = new SideMenu(center);
+        sideMenu = new SideMenu(center,true);
         grid.setLeft(sideMenu);
 
 
@@ -87,7 +87,7 @@ public class HelloApplication extends Application
 
                 Elements removeelement = new Elements(true);
                 removeelement.getAllElements();
-                SideMenu removesidemenu = new SideMenu(removeelement);
+                SideMenu removesidemenu = new SideMenu(removeelement,false);
 
                 grid.setLeft(removesidemenu);
                 grid.setCenter(removeelement);
@@ -164,12 +164,12 @@ public class HelloApplication extends Application
                     //save element
                     try {
                         FileWriter myWriter = new FileWriter("todos.txt",true);
-                        String line ="" + date.getValue().toString() + ";" + tags.getText() + ";"+ urgency.getValue() + ";" + todo.getText() + "\r\n";
+                        String line ="" + date.getValue().toString() + ";" + tags.getText() + ";"+ urgency.getValue() + ";" + todo.getText()+";"+false + "\r\n";
                         myWriter.write(line);
                         myWriter.close();
                         center.createElement(line);
                         if(tags.getText()!=""){ //update the list of all tags if there are someone new
-                            String[] mytags = tags.getText().split(";");
+                            String[] mytags = tags.getText().split(",");
                             //List<String> tagstoadd = new ArrayList<>();
 
                             myWriter = new FileWriter("tags.txt",true);
